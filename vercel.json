@@ -1,6 +1,23 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "git": {
-    "deploymentEnabled": false
-  }
+    "deploymentEnabled": true
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors *"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api-proxy/:path*",
+      "destination": "https://88api.xyz/v1/:path*"
+    }
+  ]
 }

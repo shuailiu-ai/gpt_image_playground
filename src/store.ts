@@ -71,7 +71,6 @@ import { stripInjectedCodexCliSizePrompt } from './lib/size'
 
 const FAL_RECOVERY_POLL_MS = 10_000
 const CUSTOM_RECOVERY_POLL_MS = 10_000
-const SUPPORT_PROMPT_IMAGE_THRESHOLD = 50
 const falRecoveryTimers = new Map<string, ReturnType<typeof setTimeout>>()
 const customRecoveryTimers = new Map<string, ReturnType<typeof setTimeout>>()
 const openAIWatchdogTimers = new Map<string, ReturnType<typeof setTimeout>>()
@@ -110,7 +109,7 @@ function isErrorToastTitle(title: string): boolean {
   return /(?:失败|错误|异常|报错|无法|不能|超时|中断|断开|请先|请输入|已达上限|不存在|已丢失)$/.test(title)
 }
 
-export type SettingsTab = 'general' | 'agent' | 'api' | 'data' | 'about'
+export type SettingsTab = 'general' | 'agent' | 'api' | 'data'
 
 const TIMEOUT_STREAMING_HINT = '也可尝试打开「流式传输」，并提高「请求中间步骤图像数」来维持连接。'
 const TIMEOUT_PARTIAL_IMAGES_ZERO_HINT = '官方流式接口不发送心跳，当前「请求中间步骤图像数」为 0，连接可能因无数据传输而断开。建议提高到 2 或 3。'
@@ -148,49 +147,6 @@ function showTaskCompletionNotification(title: string, body: string) {
   const settings = normalizeSettings(useStore.getState().settings)
   if (!settings.taskCompletionNotification) return
   showBrowserNotification(title, { body })
-}
-
-function countSuccessfulOutputImages(tasks: TaskRecord[]) {
-  return tasks.reduce((count, task) => count + (task.status === 'done' && !isAgentTask(task) ? task.outputImages.length : 0), 0)
-}
-
-function skipSupportPromptForImportedData(tasks: TaskRecord[]) {
-  const count = countSuccessfulOutputImages(tasks)
-  useStore.setState((state) => {
-    if (state.supportPromptDismissed) return {}
-    if (count <= SUPPORT_PROMPT_IMAGE_THRESHOLD) {
-      return { supportPromptSkippedForImportedData: false }
-    }
-    if (state.supportPromptOpen) return {}
-    return { supportPromptSkippedForImportedData: true }
-  })
-}
-
-function showSupportPromptForExistingLocalData(tasks: TaskRecord[]) {
-  const count = countSuccessfulOutputImages(tasks)
-  useStore.setState((state) => {
-    if (state.supportPromptDismissed || state.supportPromptOpen) return {}
-    if (count <= SUPPORT_PROMPT_IMAGE_THRESHOLD) {
-      return { supportPromptSkippedForImportedData: false }
-    }
-    if (state.supportPromptSkippedForImportedData) return {}
-    return { supportPromptOpen: true }
-  })
-}
-
-function maybeOpenSupportPrompt(previousTasks: TaskRecord[], nextTasks: TaskRecord[], taskId: string) {
-  const state = useStore.getState()
-  if (state.supportPromptDismissed || state.supportPromptOpen || state.supportPromptSkippedForImportedData) return
-
-  const previousTask = previousTasks.find((task) => task.id === taskId)
-  const nextTask = nextTasks.find((task) => task.id === taskId)
-  if (!nextTask || previousTask?.status === 'done' || nextTask.status !== 'done' || nextTask.outputImages.length === 0) return
-
-  const previousCount = countSuccessfulOutputImages(previousTasks)
-  const nextCount = countSuccessfulOutputImages(nextTasks)
-  if (previousCount <= SUPPORT_PROMPT_IMAGE_THRESHOLD && nextCount > SUPPORT_PROMPT_IMAGE_THRESHOLD) {
-    useStore.setState({ supportPromptOpen: true })
-  }
 }
 
 function mergeImportedAgentConversations(current: AgentConversation[], imported: AgentConversation[]) {
@@ -390,8 +346,6 @@ interface AppState {
   supportPromptOpen: boolean
   supportPromptDismissed: boolean
   supportPromptSkippedForImportedData: boolean
-  setSupportPromptOpen: (v: boolean) => void
-  dismissSupportPrompt: () => void
 
   // Toast
   toast: { message: string; type: ToastType } | null
@@ -868,12 +822,7 @@ export const useStore = create<AppState>()(
 
       // Tasks
       tasks: [],
-      setTasks: (tasks) => set(() => ({
-        tasks,
-        ...(countSuccessfulOutputImages(tasks) <= SUPPORT_PROMPT_IMAGE_THRESHOLD
-          ? { supportPromptSkippedForImportedData: false }
-          : {}),
-      })),
+      setTasks: (tasks) => set({ tasks }),
       favoriteCollections: [createDefaultFavoriteCollection()],
       setFavoriteCollections: (favoriteCollections) => set((state) => {
         const nextCollections = ensureDefaultFavoriteCollection(normalizeFavoriteCollections(favoriteCollections))
@@ -988,10 +937,8 @@ export const useStore = create<AppState>()(
         })
       },
       supportPromptOpen: false,
-      supportPromptDismissed: false,
+      supportPromptDismissed: true,
       supportPromptSkippedForImportedData: false,
-      setSupportPromptOpen: (supportPromptOpen) => set({ supportPromptOpen }),
-      dismissSupportPrompt: () => set({ supportPromptOpen: false, supportPromptDismissed: true }),
 
       // Toast
       toast: null,
@@ -1487,7 +1434,6 @@ export async function initStore() {
     .filter((task, index) => normalizedFavorites.changed || interruptedTaskIds.has(task.id) || task.rawResponsePayload !== markedTasks[index]?.rawResponsePayload)
     .map((task) => putTask(task)))
   useStore.getState().setTasks(tasks)
-  showSupportPromptForExistingLocalData(tasks)
   for (const task of tasks) {
     if (
       task.apiProvider === 'fal' &&
@@ -3722,7 +3668,6 @@ export function updateTaskInStore(taskId: string, patch: Partial<TaskRecord>) {
   )
   const task = updated.find((t) => t.id === taskId)
   setTasks(updated)
-  maybeOpenSupportPrompt(tasks, updated, taskId)
   if (task) putTask(task)
 }
 
@@ -4206,8 +4151,6 @@ export async function clearData(options: ClearOptions = { clearConfig: true, cle
     useStore.setState({
       agentConversations: [],
       activeAgentConversationId: null,
-      supportPromptOpen: false,
-      supportPromptSkippedForImportedData: false,
     })
     clearInputImages()
     clearMaskDraft()
@@ -4219,7 +4162,6 @@ export async function clearData(options: ClearOptions = { clearConfig: true, cle
       dismissedPresetProfileIds: [],
       dismissedPresetProviderIds: [],
       dismissedCodexCliPrompts: [],
-      supportPromptDismissed: false,
     })
     if (presetConfig) {
       useStore.setState({ settings: { ...DEFAULT_SETTINGS } })
@@ -4503,7 +4445,6 @@ export async function importData(input: File | File[], options: ImportOptions = 
         }
       })
       await replaceStoredAgentConversations(useStore.getState().agentConversations)
-      skipSupportPromptForImportedData(tasks)
       scheduleThumbnailBackfill(importedImageIds)
     }
 

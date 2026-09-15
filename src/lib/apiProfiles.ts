@@ -34,6 +34,8 @@ export const DEFAULT_RESPONSES_MODEL = 'gpt-5.6-sol'
 export const DEFAULT_FAL_BASE_URL = 'https://fal.run'
 export const DEFAULT_FAL_MODEL = 'openai/gpt-image-2'
 export const DEFAULT_OPENAI_PROFILE_ID = 'default-openai'
+export const EIGHTY_EIGHT_API_PROFILE_ID = '88api'
+export const EIGHTY_EIGHT_API_BASE_URL = 'https://88api.xyz/v1'
 export const DEFAULT_API_TIMEOUT = 600
 
 const BUILT_IN_PROVIDER_IDS = new Set<ApiProvider>(['openai', 'sb2api-async', 'fal'])
@@ -873,10 +875,26 @@ export function validateApiProfile(profile: ApiProfile): string | null {
 }
 
 function isDefaultOpenAIProfile(profile: ApiProfile): boolean {
-  return profile.id === DEFAULT_OPENAI_PROFILE_ID &&
-    profile.name === '默认' &&
+  return isUntouchedOpenAIProfile(profile, {
+    id: DEFAULT_OPENAI_PROFILE_ID,
+    name: '默认',
+    baseUrl: DEFAULT_BASE_URL,
+  })
+}
+
+function isUntouched88ApiProfile(profile: ApiProfile): boolean {
+  return isUntouchedOpenAIProfile(profile, {
+    id: EIGHTY_EIGHT_API_PROFILE_ID,
+    name: '88API',
+    baseUrl: EIGHTY_EIGHT_API_BASE_URL,
+  })
+}
+
+function isUntouchedOpenAIProfile(profile: ApiProfile, expected: { id: string, name: string, baseUrl: string }): boolean {
+  return profile.id === expected.id &&
+    profile.name === expected.name &&
     profile.provider === 'openai' &&
-    profile.baseUrl === DEFAULT_BASE_URL &&
+    profile.baseUrl === expected.baseUrl &&
     profile.apiKey === '' &&
     profile.model === DEFAULT_IMAGES_MODEL &&
     profile.imageGenerationModel === DEFAULT_IMAGES_MODEL &&
@@ -891,10 +909,11 @@ function isDefaultOpenAIProfile(profile: ApiProfile): boolean {
 }
 
 function hasOnlyDefaultProfiles(settings: AppSettings): boolean {
-  return settings.customProviders.length === 0 &&
-    settings.profiles.length === 1 &&
-    settings.activeProfileId === DEFAULT_OPENAI_PROFILE_ID &&
-    isDefaultOpenAIProfile(settings.profiles[0])
+  if (settings.customProviders.length !== 0 || settings.profiles.length !== 2) return false
+  if (settings.activeProfileId !== DEFAULT_OPENAI_PROFILE_ID) return false
+  const defaultProfile = settings.profiles.find((profile) => profile.id === DEFAULT_OPENAI_PROFILE_ID)
+  const api88Profile = settings.profiles.find((profile) => profile.id === EIGHTY_EIGHT_API_PROFILE_ID)
+  return Boolean(defaultProfile && api88Profile && isDefaultOpenAIProfile(defaultProfile) && isUntouched88ApiProfile(api88Profile))
 }
 
 function createImportedProfileId(provider: ApiProvider, usedIds: Set<string>): string {
@@ -1231,7 +1250,14 @@ export function mergePresetImportedSettings(
 }
 
 export const DEFAULT_SETTINGS: AppSettings = normalizeSettings({
-  profiles: [createDefaultOpenAIProfile()],
+  profiles: [
+    createDefaultOpenAIProfile(),
+    createDefaultOpenAIProfile({
+      id: EIGHTY_EIGHT_API_PROFILE_ID,
+      name: '88API',
+      baseUrl: EIGHTY_EIGHT_API_BASE_URL,
+    }),
+  ],
   baseUrl: DEFAULT_BASE_URL,
   apiKey: DEFAULT_API_URL_PATCH?.apiKey ?? '',
   model: DEFAULT_API_URL_PATCH?.model ?? (DEFAULT_API_URL_PATCH?.apiMode === 'responses' ? DEFAULT_RESPONSES_MODEL : DEFAULT_IMAGES_MODEL),

@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../store'
-import { useVersionCheck } from '../hooks/useVersionCheck'
 import { useTooltip } from '../hooks/useTooltip'
+import { APP_NAME } from '../lib/appIdentity'
 import { dismissAllTooltips } from '../lib/tooltipDismiss'
 import ViewportTooltip from './ViewportTooltip'
-import HelpModal from './HelpModal'
 import HistoryModal from './HistoryModal'
 import { useFavoriteCollectionTitle } from './FavoriteCollections'
-import { EditIcon, HelpCircleIcon, HistoryIcon, InstallIcon, SettingsIcon } from './icons'
+import { EditIcon, HistoryIcon, InstallIcon, SettingsIcon } from './icons'
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>
@@ -27,13 +26,10 @@ export default function Header() {
   const agentMobileHeaderVisible = useStore((s) => s.agentMobileHeaderVisible)
   const agentConversations = useStore((s) => s.agentConversations)
   const activeAgentConversationId = useStore((s) => s.activeAgentConversationId)
-  const filterFavorite = useStore((s) => s.filterFavorite)
   const activeFavoriteCollectionId = useStore((s) => s.activeFavoriteCollectionId)
   const activeConversation = agentConversations.find((item) => item.id === activeAgentConversationId)
   const favoriteCollectionTitle = useFavoriteCollectionTitle()
   const showFavoriteCollectionTitle = appMode === 'gallery' && Boolean(activeFavoriteCollectionId)
-  const { hasUpdate, latestRelease, dismiss } = useVersionCheck()
-  const [showHelp, setShowHelp] = useState(false)
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isPwaInstalled, setIsPwaInstalled] = useState(isInstalledPwa)
   const [hintVisible, setHintVisible] = useState(false)
@@ -84,7 +80,6 @@ export default function Header() {
   }, [appMode, agentMobileHeaderVisible])
 
   const installTooltip = useTooltip()
-  const helpTooltip = useTooltip()
   const settingsTooltip = useTooltip()
 
   useEffect(() => {
@@ -153,36 +148,14 @@ export default function Header() {
               {showFavoriteCollectionTitle ? (
                 <>
                   <span className="min-w-0 truncate text-[17px] font-bold tracking-tight text-gray-800 dark:text-gray-100 sm:hidden" title={favoriteCollectionTitle}>{favoriteCollectionTitle}</span>
-                  <a
-                    href="https://github.com/CookSleep/gpt_image_playground"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hidden text-lg font-bold tracking-tight text-gray-800 transition-colors hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300 sm:inline"
-                  >
-                    GPT Image Playground
-                  </a>
+                  <span className="hidden text-lg font-bold tracking-tight text-gray-800 dark:text-gray-100 sm:inline">
+                    {APP_NAME}
+                  </span>
                 </>
               ) : (
-                <a
-                  href="https://github.com/CookSleep/gpt_image_playground"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[17px] sm:text-lg font-bold tracking-tight text-gray-800 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                >
-                  GPT Image Playground
-                </a>
-              )}
-              {hasUpdate && latestRelease && (
-                <a
-                  href={latestRelease.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={dismiss}
-                  className="absolute -right-1 -top-1 translate-x-full -translate-y-1/4 px-1 py-0.5 rounded-[4px] border border-red-500/30 text-[9px] font-black bg-red-500 text-white hover:bg-red-600 transition-all animate-fade-in leading-none shadow-sm"
-                  title={`新版本 ${latestRelease.tag}`}
-                >
-                  NEW
-                </a>
+                <span className="text-[17px] sm:text-lg font-bold tracking-tight text-gray-800 dark:text-gray-100">
+                  {APP_NAME}
+                </span>
               )}
             </h1>
             {appMode === 'agent' && <div className="hidden sm:flex items-center gap-1 relative">
@@ -274,24 +247,6 @@ export default function Header() {
             )}
             <div
               className="relative"
-              {...helpTooltip.handlers}
-            >
-              <button
-                onClick={() => {
-                  dismissAllTooltips()
-                  setShowHelp(true)
-                }}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
-                aria-label="操作指南"
-              >
-                <HelpCircleIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </button>
-              <ViewportTooltip visible={helpTooltip.visible} className="whitespace-nowrap">
-                操作指南
-              </ViewportTooltip>
-            </div>
-            <div
-              className="relative"
               {...settingsTooltip.handlers}
             >
               <button
@@ -342,7 +297,6 @@ export default function Header() {
           </div>
         </div>
       </div>
-      {showHelp && <HelpModal appMode={appMode} isFavoriteCollectionOverview={appMode === 'gallery' && filterFavorite && !activeFavoriteCollectionId} onClose={() => setShowHelp(false)} />}
     </>
   )
 }

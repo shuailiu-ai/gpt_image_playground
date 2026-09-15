@@ -39,12 +39,7 @@ jobs:
             exit 0
           fi
 
-          if gh api --silent "repos/CookSleep/gpt_image_playground/releases/tags/v$version"; then
-            echo "deploy=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Release v$version does not exist. Skipping Vercel deployment."
-            echo "deploy=false" >> "$GITHUB_OUTPUT"
-          fi
+          echo "deploy=true" >> "$GITHUB_OUTPUT"
       - name: Call Vercel Deploy Hook
         if: ${{ steps.release.outputs.deploy == 'true' && env.VERCEL_DEPLOY_HOOK != '' }}
         run: |
