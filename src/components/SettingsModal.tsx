@@ -47,7 +47,6 @@ import {
   CUSTOM_PROVIDER_LLM_PROMPT,
   DEFAULT_CUSTOM_PROVIDER_JSON,
 } from '../lib/settingsCustomProvider'
-import { APP_DESCRIPTION, APP_NAME, APP_SHORT_NAME } from '../lib/appIdentity'
 import { useCloseOnEscape } from '../hooks/useCloseOnEscape'
 import { usePreventBackgroundScroll } from '../hooks/usePreventBackgroundScroll'
 import { DEFAULT_DROPDOWN_MAX_HEIGHT, getDropdownMaxHeight } from '../lib/dropdown'
@@ -241,42 +240,11 @@ export default function SettingsModal() {
   const activeCustomProviderAsync = isAsyncCustomProvider(activeCustomProvider)
   const apiProxyChecked = activeProfileApiProxyEligible && (apiProxyLocked || activeProfile.apiProxy)
   const apiProxyEnabled = apiProxyAvailable && activeProfileApiProxyEligible && apiProxyChecked
-  const defaultProviderOrder = ['openai', 'sb2api-async', 'fal', ...draft.customProviders.map(p => p.id)]
+  const defaultProviderOrder = ['openai']
   const providerOrder = draft.providerOrder || defaultProviderOrder
 
-  const unorderedProviderOptions = [
-    { label: 'OpenAI 兼容接口', value: 'openai', draggable: true },
-    { label: 'sub2api（异步）', value: 'sb2api-async', draggable: true },
-    { label: 'fal.ai', value: 'fal', draggable: true },
-    ...draft.customProviders.map((provider) => {
-      const actions = [
-        ...(!presetConfigOnly && !isPresetProviderLocked(provider.id) ? [{ label: '编辑', onClick: () => openEditCustomProvider(provider) }] : []),
-        ...(!presetConfigOnly && !isPresetProviderDeletionPrevented(provider.id, draft.profiles) ? [{
-          label: '删除',
-          variant: 'danger' as const,
-          onClick: () => confirmDeleteCustomProvider(provider),
-        }] : []),
-      ]
-      return {
-        label: provider.name,
-        value: provider.id,
-        draggable: true,
-        actions: actions.length ? actions : undefined,
-      }
-    }),
-  ]
-
   const providerOptions = [
-    ...(!presetConfigOnly && !activeProfileLocked
-      ? [{ label: '创建自定义服务商', value: ADD_CUSTOM_PROVIDER_VALUE, variant: 'action' as const }]
-      : []),
-    ...unorderedProviderOptions.sort((a, b) => {
-      const aIndex = providerOrder.indexOf(String(a.value))
-      const bIndex = providerOrder.indexOf(String(b.value))
-      const validA = aIndex !== -1 ? aIndex : defaultProviderOrder.indexOf(String(a.value))
-      const validB = bIndex !== -1 ? bIndex : defaultProviderOrder.indexOf(String(b.value))
-      return validA - validB
-    })
+    { label: 'OpenAI 兼容接口', value: 'openai' },
   ]
 
   const getDefaultModelForMode = (apiMode: AppSettings['apiMode']) =>
@@ -1184,15 +1152,6 @@ export default function SettingsModal() {
                 </svg>
                 数据管理
               </button>
-              <button
-                onClick={() => setActiveTab('about')}
-                className={`whitespace-nowrap flex-shrink-0 flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-colors ${activeTab === 'about' ? 'bg-white dark:bg-white/[0.08] shadow-sm text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-white/[0.04]'}`}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                关于
-              </button>
             </nav>
           </div>
 
@@ -1442,11 +1401,10 @@ export default function SettingsModal() {
               <div className="block">
                 <span className="mb-1.5 block text-sm text-gray-600 dark:text-gray-300">服务商类型</span>
                 <Select
-                  value={activeProfile.provider}
+                  value="openai"
                   onChange={handleProviderTypeChange}
-                  onReorder={handleProviderReorder}
                   options={providerOptions}
-                  disabled={presetConfigOnly || activeProfileLocked}
+                  disabled
                   className="w-full rounded-xl border border-gray-200/70 bg-white/60 px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-300 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 dark:focus:border-blue-500/50"
                 />
               </div>
@@ -1902,20 +1860,6 @@ export default function SettingsModal() {
                   >
                     清空所选数据
                   </button>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'about' && (
-              <div className="flex h-full min-h-[300px] flex-col items-center justify-center pb-8 px-6">
-                <div className="flex flex-col items-center">
-                  <div className="mb-5 flex h-[88px] w-[88px] items-center justify-center rounded-full border border-gray-200/80 bg-gray-50/50 text-lg font-bold text-gray-800 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100">
-                    {APP_SHORT_NAME}
-                  </div>
-                  <h4 className="text-[17px] font-bold text-gray-800 dark:text-gray-100">{APP_NAME}</h4>
-                  <p className="mt-1.5 text-[13px] text-gray-500 dark:text-gray-400">
-                    {APP_DESCRIPTION}
-                  </p>
                 </div>
               </div>
             )}

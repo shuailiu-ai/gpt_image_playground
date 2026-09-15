@@ -1,13 +1,13 @@
 <div align="center">
 
-# 🎨 生图工作台
+# 🎨 88API生图服务
 
 [![React](https://img.shields.io/badge/React-19-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 **个人自用的图片生成与编辑工具**
 
-提供 Web UI，支持 OpenAI / OpenAI 兼容接口、sub2api（异步）、fal.ai 与可导入的自定义 HTTP 供应商。<br>
+提供 Web UI，支持 OpenAI 兼容接口。<br>
 支持文本生图、参考图与遮罩编辑，数据保存在浏览器本地。
 
 </div>

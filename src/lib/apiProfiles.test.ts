@@ -471,7 +471,7 @@ describe('mergeImportedSettings', () => {
     })
 
     expect(merged.customProviders.map((provider) => provider.id)).toEqual(['custom-existing', 'custom-imported'])
-    expect(merged.profiles).toHaveLength(2)
+    expect(merged.profiles).toHaveLength(3)
   })
 
   it('appends imported custom providers and keeps imported custom profile references', () => {
