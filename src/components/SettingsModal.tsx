@@ -47,7 +47,7 @@ import {
   CUSTOM_PROVIDER_LLM_PROMPT,
   DEFAULT_CUSTOM_PROVIDER_JSON,
 } from '../lib/settingsCustomProvider'
-import { APP_DESCRIPTION, APP_NAME, APP_SHORT_NAME, UPSTREAM_LICENSE_URL, UPSTREAM_NAME, UPSTREAM_REPO_URL } from '../lib/appIdentity'
+import { APP_DESCRIPTION, APP_NAME, APP_SHORT_NAME } from '../lib/appIdentity'
 import { useCloseOnEscape } from '../hooks/useCloseOnEscape'
 import { usePreventBackgroundScroll } from '../hooks/usePreventBackgroundScroll'
 import { DEFAULT_DROPDOWN_MAX_HEIGHT, getDropdownMaxHeight } from '../lib/dropdown'
@@ -1908,9 +1908,6 @@ export default function SettingsModal() {
 
             {activeTab === 'about' && (
               <div className="flex h-full min-h-[300px] flex-col items-center justify-center pb-8 px-6">
-                {/*
-                  原项目要求二次开发保留署名。本页展示的是 fork 声明，而非移除版权信息。
-                */}
                 <div className="flex flex-col items-center">
                   <div className="mb-5 flex h-[88px] w-[88px] items-center justify-center rounded-full border border-gray-200/80 bg-gray-50/50 text-lg font-bold text-gray-800 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100">
                     {APP_SHORT_NAME}
@@ -1920,28 +1917,6 @@ export default function SettingsModal() {
                     {APP_DESCRIPTION}
                   </p>
                 </div>
-
-                <p className="mt-8 max-w-[360px] text-center text-[13px] leading-relaxed text-gray-500 dark:text-gray-400">
-                  本站点基于开源项目{' '}
-                  <a
-                    href={UPSTREAM_REPO_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-gray-700 underline decoration-gray-300 underline-offset-2 hover:text-gray-900 dark:text-gray-200 dark:decoration-white/20 dark:hover:text-white"
-                  >
-                    {UPSTREAM_NAME}
-                  </a>
-                  {' '}（
-                  <a
-                    href={UPSTREAM_LICENSE_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-gray-700 underline decoration-gray-300 underline-offset-2 hover:text-gray-900 dark:text-gray-200 dark:decoration-white/20 dark:hover:text-white"
-                  >
-                    MIT
-                  </a>
-                  ）修改。
-                </p>
               </div>
             )}
           </div>

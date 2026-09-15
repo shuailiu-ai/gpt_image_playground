@@ -2,13 +2,11 @@
 
 # 🎨 生图工作台
 
-[![License](https://img.shields.io/badge/license-MIT-10b981?style=flat-square)](./LICENSE)
 [![React](https://img.shields.io/badge/React-19-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 **个人自用的图片生成与编辑工具**
 
-基于开源项目 [GPT Image Playground](https://github.com/CookSleep/gpt_image_playground)（MIT）修改。<br>
 提供 Web UI，支持 OpenAI / OpenAI 兼容接口、sub2api（异步）、fal.ai 与可导入的自定义 HTTP 供应商。<br>
 支持文本生图、参考图与遮罩编辑，数据保存在浏览器本地。
 
@@ -598,8 +596,4 @@ VITE_DEFAULT_API_URL=https://example.com/gpt-image-config.json
   <br>
   <br>
 </div>
-
-## 📄 许可证
-
-本仓库基于 [MIT License](LICENSE) 使用和修改开源项目 [GPT Image Playground](https://github.com/CookSleep/gpt_image_playground)。原作者版权声明见 `LICENSE`。
 

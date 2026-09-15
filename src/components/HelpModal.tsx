@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom'
 import type { AppMode } from '../types'
 import { useCloseOnEscape } from '../hooks/useCloseOnEscape'
 import { usePreventBackgroundScroll } from '../hooks/usePreventBackgroundScroll'
-import { UPSTREAM_NAME, UPSTREAM_REPO_URL } from '../lib/appIdentity'
 
 interface HelpModalProps {
   appMode: AppMode
@@ -167,17 +166,6 @@ export default function HelpModal({ appMode, isFavoriteCollectionOverview = fals
               </section>
             </>
           )}
-        </div>
-
-        <div className="pt-4 border-t border-gray-200 dark:border-white/[0.08] flex justify-center">
-          <a
-            href={UPSTREAM_REPO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-center text-xs leading-relaxed text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          >
-            基于开源项目 {UPSTREAM_NAME} 修改
-          </a>
         </div>
       </div>
     </div>,
